@@ -1,7 +1,9 @@
 # Tinkurlab Das Bot
 
 ## Overview
-Das Bot is an instrumented kegeratr bot that helps dispense the beer and keep track of who drinks what, awarding prized for certain drinking patterns.
+Das Bot is an instrumented kegeratr bot that helps dispense the beer and keep track of who drinks what, awarding prized for certain drinking patterns.  
+
+Warning: DasBot 2.0 was last initialized in fall 2012 so the code may be a bit rusty.
 
 ## Components
 
