@@ -27,7 +27,7 @@ See /Code PHP/
 
 See /Code PHP/
 
-### Database
+### Database 
 
 TODO: make sure 'badgesawarded' table is created
 
