@@ -11,23 +11,23 @@ if(isset($_GET['rfid'])) {
 //GET REFERENCE VALUES
 
 //get total ticks per liter
-$refTicksPerLiterResult = mysql_query("SELECT value FROM ref_data WHERE name = 'ticks_per_liter' LIMIT 1")
-or die(mysql_error());
-$refTicksPerLiterRows = mysql_fetch_array( $refTicksPerLiterResult );
+$refTicksPerLiterResult = mysqli_query($GLOBALS["cnx"], "SELECT value FROM ref_data WHERE name = 'ticks_per_liter' LIMIT 1")
+or die(mysqli_error($GLOBALS["cnx"]));
+$refTicksPerLiterRows = mysqli_fetch_array( $refTicksPerLiterResult );
 $refTicksPerLiter = $refTicksPerLiterRows['value'];
 
 
 //get current leaders
 $leaderQuery = "SELECT users.username, sum(drinks.volume) as total FROM drinks, users WHERE users.id= drinks.userid AND users.username != 'orphan' AND users.username != 'Pitcher' GROUP BY userid ORDER BY total DESC LIMIT 5";
 
-$leadersResult = mysql_query($leaderQuery)
-  or die(mysql_error());
+$leadersResult = mysqli_query($GLOBALS["cnx"], $leaderQuery)
+  or die(mysqli_error($GLOBALS["cnx"]));
 
 
 
 //get keg status
-$kegConsumedResult = mysql_query("SELECT kegid, percentconsumed FROM keg_stats ORDER BY kegid ASC")
- or die(mysql_error());
+$kegConsumedResult = mysqli_query($GLOBALS["cnx"], "SELECT kegid, percentconsumed FROM keg_stats ORDER BY kegid ASC")
+ or die(mysqli_error($GLOBALS["cnx"]));
 
 //preset values:
 $keg1Consumed = 0;
@@ -35,7 +35,7 @@ $keg2Consumed = 0;
 $keg3Consumed = 0;
 
 $i = 0;
-while($kegConsumedRows = mysql_fetch_assoc($kegConsumedResult)){
+while($kegConsumedRows = mysqli_fetch_assoc($kegConsumedResult)){
 
  if($kegConsumedRows['kegid'] == "1")
     $keg1Consumed = round($kegConsumedRows['percentconsumed']);
@@ -53,7 +53,7 @@ while($kegConsumedRows = mysql_fetch_assoc($kegConsumedResult)){
 //GET FUN FACTS
 
 //largest vessel
-$largestVesselResult = mysql_query("
+$largestVesselResult = mysqli_query($GLOBALS["cnx"], "
 	SELECT u.username
 	FROM users u,
 	     drinks d
@@ -62,13 +62,13 @@ $largestVesselResult = mysql_query("
 	  AND u.username != 'orphan'
 	ORDER BY d.volume DESC
 	LIMIT 1")
- or die(mysql_error());
-while($largestVesselRows = mysql_fetch_assoc($largestVesselResult)){
+ or die(mysqli_error($GLOBALS["cnx"]));
+while($largestVesselRows = mysqli_fetch_assoc($largestVesselResult)){
   $largestVesselUser = $largestVesselRows['username'];
 }
 
 //Most trips
-$mostTripsResult = mysql_query("
+$mostTripsResult = mysqli_query($GLOBALS["cnx"], "
 	SELECT u.username,
 	       count(d.volume) as drinks
 	FROM users u,
@@ -80,14 +80,14 @@ $mostTripsResult = mysql_query("
 	ORDER BY drinks DESC
 	LIMIT 1")
 
- or die(mysql_error());
-while($mostTripsRows = mysql_fetch_assoc($mostTripsResult)){
+ or die(mysqli_error($GLOBALS["cnx"]));
+while($mostTripsRows = mysqli_fetch_assoc($mostTripsResult)){
   $mostTripsUser = $mostTripsRows['username'];
   $mostTripsCount = $mostTripsRows['drinks'];
 }
 
 //least drank
-$leasDrankResult = mysql_query("
+$leasDrankResult = mysqli_query($GLOBALS["cnx"], "
 	SELECT users.username as username,
 	       sum(drinks.volume) as total,
 	       count(drinks.volume) as drink_count
@@ -99,8 +99,8 @@ $leasDrankResult = mysql_query("
 	GROUP BY userid
 	ORDER BY total ASC
 	LIMIT 1")
- or die(mysql_error());
-while($leastDrankRows = mysql_fetch_assoc($leasDrankResult)){
+ or die(mysqli_error($GLOBALS["cnx"]));
+while($leastDrankRows = mysqli_fetch_assoc($leasDrankResult)){
   $leastDrankUser = $leastDrankRows['username'];
   $leastDrankCount = $leastDrankRows['drink_count'];
   $leastDrankVolume = round($leastDrankRows['total'] / $refTicksPerLiter, 1);
@@ -111,7 +111,7 @@ while($leastDrankRows = mysql_fetch_assoc($leasDrankResult)){
 
 $recentDrinksFeed = "";
 
-$recentDrinksResult = mysql_query("
+$recentDrinksResult = mysqli_query($GLOBALS["cnx"], "
 	SELECT users.username as username,
 	       drinks.volume as volume,
 	       drinks.timestamp as time,
@@ -125,8 +125,8 @@ $recentDrinksResult = mysql_query("
 	  AND users.username != 'Pitcher'
 	ORDER BY drinks.id DESC
 	LIMIT 5")
- or die(mysql_error());
-while($recentDrinksRows = mysql_fetch_assoc($recentDrinksResult)){
+ or die(mysqli_error($GLOBALS["cnx"]));
+while($recentDrinksRows = mysqli_fetch_assoc($recentDrinksResult)){
   $recentDrinksUser = $recentDrinksRows['username'];
   $recentDrinksTime= date("g:i a", $recentDrinksRows['time']+(3600*3)); //fix the time zone thing
   $recentDrinksBeer= $recentDrinksRows['beerName'];
@@ -177,7 +177,7 @@ $badge14Winners = "";
 
 //badge 1
 
-$badge1Result = mysql_query("
+$badge1Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -190,13 +190,13 @@ $badge1Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 1
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge1_num_winners = mysql_num_rows($badge1Result);
+$badge1_num_winners = mysqli_num_rows($badge1Result);
 $i=0;
 if($badge1_num_winners != 0) {
 	$badge1Winners = "";
-	while($badge1Rows = mysql_fetch_assoc($badge1Result)){
+	while($badge1Rows = mysqli_fetch_assoc($badge1Result)){
 	  if($i<3)
 	    $badge1Winners = $badge1Winners.$badge1Rows['username']."<br>";
 	  $badge1Title = $badge1Rows['title'];
@@ -213,7 +213,7 @@ if($badge1_num_winners != 0) {
 
 //badge 2
 
-$badge2Result = mysql_query("
+$badge2Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -226,13 +226,13 @@ $badge2Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 18
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge2_num_winners = mysql_num_rows($badge2Result);
+$badge2_num_winners = mysqli_num_rows($badge2Result);
 $i=0;
 if($badge2_num_winners != 0) {
 	$badge2Winners = "";
-	while($badge2Rows = mysql_fetch_assoc($badge2Result)){
+	while($badge2Rows = mysqli_fetch_assoc($badge2Result)){
 	  if($i<3)
 	    $badge2Winners = $badge2Winners.$badge2Rows['username']."<br>";
 	  $badge2Title = $badge2Rows['title'];
@@ -247,7 +247,7 @@ if($badge2_num_winners != 0) {
 } //end Badge 2
 
 //badge 3
-$badge3Result = mysql_query("
+$badge3Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -260,13 +260,13 @@ $badge3Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 5
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge3_num_winners = mysql_num_rows($badge3Result);
+$badge3_num_winners = mysqli_num_rows($badge3Result);
 $i=0;
 if($badge3_num_winners != 0) {
 	$badge3Winners = "";
-	while($badge3Rows = mysql_fetch_assoc($badge3Result)){
+	while($badge3Rows = mysqli_fetch_assoc($badge3Result)){
 	  if($i<3)
 	    $badge3Winners = $badge3Winners.$badge3Rows['username']."<br>";
 	  $badge3Title = $badge3Rows['title'];
@@ -282,7 +282,7 @@ if($badge3_num_winners != 0) {
 
 
 //badge 4
-$badge4Result = mysql_query("
+$badge4Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -295,13 +295,13 @@ $badge4Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 4
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge4_num_winners = mysql_num_rows($badge4Result);
+$badge4_num_winners = mysqli_num_rows($badge4Result);
 $i=0;
 if($badge4_num_winners != 0) {
 	$badge4Winners = "";
-	while($badge4Rows = mysql_fetch_assoc($badge4Result)){
+	while($badge4Rows = mysqli_fetch_assoc($badge4Result)){
 	  if($i<3)
 	    $badge4Winners = $badge4Winners.$badge4Rows['username']."<br>";
 	  $badge4Title = $badge4Rows['title'];
@@ -316,7 +316,7 @@ if($badge4_num_winners != 0) {
 } //end Badge 4
 
 //badge 5
-$badge5Result = mysql_query("
+$badge5Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -329,13 +329,13 @@ $badge5Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 3
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge5_num_winners = mysql_num_rows($badge5Result);
+$badge5_num_winners = mysqli_num_rows($badge5Result);
 $i=0;
 if($badge5_num_winners != 0) {
 	$badge5Winners = "";
-	while($badge5Rows = mysql_fetch_assoc($badge5Result)){
+	while($badge5Rows = mysqli_fetch_assoc($badge5Result)){
 	  if($i<3)
 	    $badge5Winners = $badge5Winners.$badge5Rows['username']."<br>";
 	  $badge5Title = $badge5Rows['title'];
@@ -350,7 +350,7 @@ if($badge5_num_winners != 0) {
 } //end Badge 5
 
 //badge 6
-$badge6Result = mysql_query("
+$badge6Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -363,13 +363,13 @@ $badge6Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 16
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge6_num_winners = mysql_num_rows($badge6Result);
+$badge6_num_winners = mysqli_num_rows($badge6Result);
 $i=0;
 if($badge6_num_winners != 0) {
 	$badge6Winners = "";
-	while($badge6Rows = mysql_fetch_assoc($badge6Result)){
+	while($badge6Rows = mysqli_fetch_assoc($badge6Result)){
 	  if($i<3)
 	    $badge6Winners = $badge6Winners.$badge6Rows['username']."<br>";
 	  $badge6Title = $badge6Rows['title'];
@@ -384,7 +384,7 @@ if($badge6_num_winners != 0) {
 } //end Badge 6
 
 //badge7
-$badge7Result = mysql_query("
+$badge7Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -397,13 +397,13 @@ $badge7Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 7
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge7_num_winners = mysql_num_rows($badge7Result);
+$badge7_num_winners = mysqli_num_rows($badge7Result);
 $i=0;
 if($badge7_num_winners != 0) {
 	$badge7Winners = "";
-	while($badge7Rows = mysql_fetch_assoc($badge7Result)){
+	while($badge7Rows = mysqli_fetch_assoc($badge7Result)){
 	  if($i<3)
 	    $badge7Winners = $badge7Winners.$badge7Rows['username']."<br>";
 	  $badge7Title = $badge7Rows['title'];
@@ -418,7 +418,7 @@ if($badge7_num_winners != 0) {
 } //end badge7
 
 //badge8
-$badge8Result = mysql_query("
+$badge8Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -431,13 +431,13 @@ $badge8Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 17
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge8_num_winners = mysql_num_rows($badge8Result);
+$badge8_num_winners = mysqli_num_rows($badge8Result);
 $i=0;
 if($badge8_num_winners != 0) {
 	$badge8Winners = "";
-	while($badge8Rows = mysql_fetch_assoc($badge8Result)){
+	while($badge8Rows = mysqli_fetch_assoc($badge8Result)){
 	  if($i<3)
 	    $badge8Winners = $badge8Winners.$badge8Rows['username']."<br>";
 	  $badge8Title = $badge8Rows['title'];
@@ -452,7 +452,7 @@ if($badge8_num_winners != 0) {
 } //end badge8
 
 //badge9
-$badge9Result = mysql_query("
+$badge9Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -465,13 +465,13 @@ $badge9Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 12
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge9_num_winners = mysql_num_rows($badge9Result);
+$badge9_num_winners = mysqli_num_rows($badge9Result);
 $i=0;
 if($badge9_num_winners != 0) {
 	$badge9Winners = "";
-	while($badge9Rows = mysql_fetch_assoc($badge9Result)){
+	while($badge9Rows = mysqli_fetch_assoc($badge9Result)){
 	  if($i<3)
 	    $badge9Winners = $badge9Winners.$badge9Rows['username']."<br>";
 	  $badge9Title = $badge9Rows['title'];
@@ -486,7 +486,7 @@ if($badge9_num_winners != 0) {
 } //end badge9
 
 //badge10
-$badge10Result = mysql_query("
+$badge10Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -499,13 +499,13 @@ $badge10Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 13
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge10_num_winners = mysql_num_rows($badge10Result);
+$badge10_num_winners = mysqli_num_rows($badge10Result);
 $i=0;
 if($badge10_num_winners != 0) {
 	$badge10Winners = "";
-	while($badge10Rows = mysql_fetch_assoc($badge10Result)){
+	while($badge10Rows = mysqli_fetch_assoc($badge10Result)){
 	  if($i<3)
 	    $badge10Winners = $badge10Winners.$badge10Rows['username']."<br>";
 	  $badge10Title = $badge10Rows['title'];
@@ -520,7 +520,7 @@ if($badge10_num_winners != 0) {
 } //end badge10
 
 //badge11
-$badge11Result = mysql_query("
+$badge11Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -533,13 +533,13 @@ $badge11Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 14
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge11_num_winners = mysql_num_rows($badge11Result);
+$badge11_num_winners = mysqli_num_rows($badge11Result);
 $i=0;
 if($badge11_num_winners != 0) {
 	$badge11Winners = "";
-	while($badge11Rows = mysql_fetch_assoc($badge11Result)){
+	while($badge11Rows = mysqli_fetch_assoc($badge11Result)){
 	  if($i<3)
 	    $badge11Winners = $badge11Winners.$badge11Rows['username']."<br>";
 	  $badge11Title = $badge11Rows['title'];
@@ -554,7 +554,7 @@ if($badge11_num_winners != 0) {
 } //end badge11
 
 //badge12
-$badge12Result = mysql_query("
+$badge12Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -567,13 +567,13 @@ $badge12Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 9
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge12_num_winners = mysql_num_rows($badge12Result);
+$badge12_num_winners = mysqli_num_rows($badge12Result);
 $i=0;
 if($badge12_num_winners != 0) {
 	$badge12Winners = "";
-	while($badge12Rows = mysql_fetch_assoc($badge12Result)){
+	while($badge12Rows = mysqli_fetch_assoc($badge12Result)){
 	  if($i<3)
 	    $badge12Winners = $badge12Winners.$badge12Rows['username']."<br>";
 	  $badge12Title = $badge12Rows['title'];
@@ -588,7 +588,7 @@ if($badge12_num_winners != 0) {
 } //end badge12
 
 //badge13
-$badge13Result = mysql_query("
+$badge13Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -601,13 +601,13 @@ $badge13Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 15
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge13_num_winners = mysql_num_rows($badge13Result);
+$badge13_num_winners = mysqli_num_rows($badge13Result);
 $i=0;
 if($badge13_num_winners != 0) {
 	$badge13Winners = "";
-	while($badge13Rows = mysql_fetch_assoc($badge13Result)){
+	while($badge13Rows = mysqli_fetch_assoc($badge13Result)){
 	  if($i<3)
 	    $badge13Winners = $badge13Winners.$badge13Rows['username']."<br>";
 	  $badge13Title = $badge13Rows['title'];
@@ -622,7 +622,7 @@ if($badge13_num_winners != 0) {
 } //end badge13
 
 //badge14
-$badge14Result = mysql_query("
+$badge14Result = mysqli_query($GLOBALS["cnx"], "
 	SELECT  u.username as username,
 		b.badgeimg as active,
 	        b.badgeimg_inactive as inactive,
@@ -635,13 +635,13 @@ $badge14Result = mysql_query("
 	  AND ba.badgeid = b.badgeid
 	  AND b.badgeid = 8
 	  AND u.username != 'orphan'")
- or die(mysql_error());
+ or die(mysqli_error($GLOBALS["cnx"]));
 
-$badge14_num_winners = mysql_num_rows($badge14Result);
+$badge14_num_winners = mysqli_num_rows($badge14Result);
 $i=0;
 if($badge14_num_winners != 0) {
 	$badge14Winners = "";
-	while($badge14Rows = mysql_fetch_assoc($badge14Result)){
+	while($badge14Rows = mysqli_fetch_assoc($badge14Result)){
 	  if($i<3)
 	    $badge14Winners = $badge14Winners.$badge14Rows['username']."<br>";
 	  $badge14Title = $badge14Rows['title'];
@@ -708,7 +708,7 @@ function timedRefresh(timeoutPeriod) {
         <?php
         //LOOP THROUGH LEADER
 	      $i=1;
-	      while($rowLeaders = mysql_fetch_array($leadersResult)){
+	      while($rowLeaders = mysqli_fetch_array($leadersResult)){
 	        $user = $rowLeaders['username'];
 	        $totalConsumed = $rowLeaders['total'];
 	        $totalConsumedLiters = round($totalConsumed / $refTicksPerLiter, 1);

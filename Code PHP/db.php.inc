@@ -3,12 +3,12 @@
 
 //connect to Database
 
-$link = mysql_connect('www.yourdbserver.com', 'DBUserName', 'DBUserPwd');
+$link = ($GLOBALS["cnx"] = mysqli_connect('www.yourdbserver.com',  'DBUserName',  'DBUserPwd'));
 if (!$link) {
-    die('Could not connect: ' . mysql_error());
+    die('Could not connect: ' . mysqli_error($GLOBALS["cnx"]));
 }
 else{
-    mysql_select_db('dasbot');
+    mysqli_select_db($GLOBALS["cnx"], "dasbot");
 }
 
 

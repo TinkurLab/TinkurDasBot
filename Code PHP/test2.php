@@ -5,10 +5,10 @@ require('db.php.inc');
 
 $userid = 27;
 
-$usernamelookupResult = mysql_query("SELECT kegid, percentconsumed FROM dasbot.keg_stats ORDER BY kegid ASC")
-	or die(mysql_error()); 
+$usernamelookupResult = mysqli_query($GLOBALS["cnx"], "SELECT kegid, percentconsumed FROM dasbot.keg_stats ORDER BY kegid ASC")
+	or die(mysqli_error($GLOBALS["cnx"])); 
 
-while($usernamelookupRows = mysql_fetch_array($usernamelookupResult)){
+while($usernamelookupRows = mysqli_fetch_array($usernamelookupResult)){
 	
 	//echo "Keg ID: ";
 	echo $usernamelookupRows['kegid'];
