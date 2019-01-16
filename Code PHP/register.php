@@ -1,7 +1,7 @@
 
 <?php
 
-require('db.php.inc');
+require('db.inc.php');
 
 //check for rfid in url. If present, set variable
 if(isset($_GET['rfid'])) {
@@ -9,9 +9,9 @@ if(isset($_GET['rfid'])) {
 }
 
 //get keg status 
- $kegStateResult = mysql_query("SELECT AVG(percentconsumed) AS avgpercentconsumed FROM keg_stats")
- or die(mysql_error()); 
- $kegStateRows = mysql_fetch_array( $kegStateResult );
+ $kegStateResult = mysqli_query($GLOBALS["cnx"], "SELECT AVG(percentconsumed) AS avgpercentconsumed FROM keg_stats")
+ or die(mysqli_error($GLOBALS["cnx"])); 
+ $kegStateRows = mysqli_fetch_array( $kegStateResult );
  $kegState = (100 - round($kegStateRows['avgpercentconsumed'],0)); 
 
 ?>
@@ -96,7 +96,7 @@ if (isset($_GET['name']) && ($_GET['action'] == 'assign') && isset($_GET['id']))
 $name = $_GET['name'];
 $id = $_GET['id'];
 
-mysql_query("UPDATE users SET username = '$name' WHERE id = $id");
+mysqli_query($GLOBALS["cnx"], "UPDATE users SET username = '$name' WHERE id = $id");
 
 
 ?>

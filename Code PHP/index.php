@@ -1,7 +1,7 @@
 <?php
 error_reporting (E_ALL ^ E_NOTICE);
 
-require('db.php.inc');
+require('db.inc.php');
 
 //check for rfid in url. If present, set variable
 if(isset($_GET['rfid'])) {
@@ -12,15 +12,15 @@ if(isset($_GET['rfid'])) {
 //GET REFERENCE VALUES
 
 //get total ticks per liter
-$refTicksPerLiterResult = mysql_query("SELECT value FROM ref_data WHERE name = 'ticks_per_liter' LIMIT 1")
-or die(mysql_error());
-$refTicksPerLiterRows = mysql_fetch_array( $refTicksPerLiterResult );
+$refTicksPerLiterResult = mysqli_query($GLOBALS["cnx"], "SELECT value FROM ref_data WHERE name = 'ticks_per_liter' LIMIT 1")
+or die(mysqli_error($GLOBALS["cnx"]));
+$refTicksPerLiterRows = mysqli_fetch_array( $refTicksPerLiterResult );
 $refTicksPerLiter = $refTicksPerLiterRows['value'];
 
 //get keg status 
- $kegStateResult = mysql_query("SELECT AVG(percentconsumed) AS avgpercentconsumed FROM keg_stats")
- or die(mysql_error()); 
- $kegStateRows = mysql_fetch_array( $kegStateResult );
+ $kegStateResult = mysqli_query($GLOBALS["cnx"], "SELECT AVG(percentconsumed) AS avgpercentconsumed FROM keg_stats")
+ or die(mysqli_error($GLOBALS["cnx"])); 
+ $kegStateRows = mysqli_fetch_array( $kegStateResult );
  $kegState = (100 - round($kegStateRows['avgpercentconsumed'],0)); 
 
 ?>
@@ -107,15 +107,15 @@ if (isset($_GET['id']) && ($_GET['action'] == 'new')) {
 
 else if (isset($_GET['name']) && isset($_GET['id'])) { //form submitted, username provided
 
-  $name = mysql_real_escape_string($_GET['name']);
-  $id = mysql_real_escape_string($_GET['id']);
+  $name = mysqli_real_escape_string($GLOBALS["cnx"], $_GET['name']);
+  $id = mysqli_real_escape_string($GLOBALS["cnx"], $_GET['id']);
   
   //check to make sure the user really is an orphan
-  $orphanVerifyResult = mysql_query("SELECT * FROM users WHERE username='orphan' AND id=$id")
-    or die(mysql_error()); 
-  if(mysql_num_rows($orphanVerifyResult) == 1) {
+  $orphanVerifyResult = mysqli_query($GLOBALS["cnx"], "SELECT * FROM users WHERE username='orphan' AND id=$id")
+    or die(mysqli_error($GLOBALS["cnx"])); 
+  if(mysqli_num_rows($orphanVerifyResult) == 1) {
 	  $updateQuery = "UPDATE  `dasbot`.`users` SET  `username` =  '$name' WHERE  `users`.`id` =$id";
-	  mysql_query($updateQuery);
+	  mysqli_query($GLOBALS["cnx"], $updateQuery);
 	  
 	  echo "<h2>Registration</h2>";
 	  echo "<p>Prost, $name! You are now registered!</p>";
@@ -136,11 +136,11 @@ else { //show the list if ID not set
 <?php
 
 //GET LIST OF "ORPHANS" IN THE USER TABLE
-$orphanResult = mysql_query("SELECT * FROM users WHERE username='orphan' LIMIT 200")
-or die(mysql_error()); 
+$orphanResult = mysqli_query($GLOBALS["cnx"], "SELECT * FROM users WHERE username='orphan' LIMIT 200")
+or die(mysqli_error($GLOBALS["cnx"])); 
 
 //LOOP THROUGH EACH ORPHAN
-while($orphanRows = mysql_fetch_array($orphanResult)){
+while($orphanRows = mysqli_fetch_array($orphanResult)){
 
   $orphanUserID = $orphanRows['id'];
   

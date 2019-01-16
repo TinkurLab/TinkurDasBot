@@ -3,7 +3,7 @@
 //Test URL
 //http://www.tinkurlab.com/projects/dasbot/arduino.php?rfid=12345678&consumed1=750&consumed2=0&consumed3=0
 
-require('db.php.inc');
+require('db.inc.php');
 
 include 'badgecheckfunction.php';
 
@@ -20,27 +20,27 @@ else { // No RFID value sent - end communication
 //GET REFERENCE VALUES
 
 //get total ticks per liter
-$refTicksPerLiterResult = mysql_query("SELECT value FROM ref_data WHERE name = 'ticks_per_liter' LIMIT 1")
-or die(mysql_error());
-$refTicksPerLiterRows = mysql_fetch_array( $refTicksPerLiterResult );
+$refTicksPerLiterResult = mysqli_query($GLOBALS["cnx"], "SELECT value FROM ref_data WHERE name = 'ticks_per_liter' LIMIT 1")
+or die(mysqli_error($GLOBALS["cnx"]));
+$refTicksPerLiterRows = mysqli_fetch_array( $refTicksPerLiterResult );
 $refTicksPerLiter = $refTicksPerLiterRows['value'];
 
 //get keg status 
- $kegStateResult = mysql_query("SELECT AVG(percentconsumed) AS avgpercentconsumed FROM keg_stats")
- or die(mysql_error()); 
- $kegStateRows = mysql_fetch_array( $kegStateResult );
+ $kegStateResult = mysqli_query($GLOBALS["cnx"], "SELECT AVG(percentconsumed) AS avgpercentconsumed FROM keg_stats")
+ or die(mysqli_error($GLOBALS["cnx"]));
+ $kegStateRows = mysqli_fetch_array( $kegStateResult );
  $kegState = (100 - round($kegStateRows['avgpercentconsumed'],0));
  
 
 //Now that we know the RFID value has been passed, check to see if the RFID is a current user
 
-$userResult = mysql_query("SELECT * FROM users WHERE rfid = '$rfid' LIMIT 1")
-or die(mysql_error()); 
+$userResult = mysqli_query($GLOBALS["cnx"], "SELECT * FROM users WHERE rfid = '$rfid' LIMIT 1")
+or die(mysqli_error($GLOBALS["cnx"]));
 
-if(mysql_num_rows($userResult) == 1) {
+if(mysqli_num_rows($userResult) == 1) {
   //echo "Thank you for using Das Bot";
   
-  $userRows = mysql_fetch_array( $userResult );
+  $userRows = mysqli_fetch_array( $userResult );
   $user = $userRows['username'];
   $userID = $userRows['id'];
   
@@ -61,9 +61,9 @@ if(mysql_num_rows($userResult) == 1) {
     //echo "<p>total ticks per Liter = $refTicksPerLiter</p>";
     
     //GET CURRENT TOTAL CONSUMPTION
-    $totalDrinkResult = mysql_query("SELECT sum(volume) as total FROM drinks WHERE userid = '$userID' LIMIT 1")
-	or die(mysql_error());
-    $totalDrinksRows = mysql_fetch_array( $totalDrinkResult );
+    $totalDrinkResult = mysqli_query($GLOBALS["cnx"], "SELECT sum(volume) as total FROM drinks WHERE userid = '$userID' LIMIT 1")
+	or die(mysqli_error($GLOBALS["cnx"]));
+    $totalDrinksRows = mysqli_fetch_array( $totalDrinkResult );
     $totalDrinks = $totalDrinksRows['total'];
     $litersConsumed = round($totalDrinks / $refTicksPerLiter, 1);
     
@@ -77,24 +77,24 @@ if(mysql_num_rows($userResult) == 1) {
       $curTime = time();
       
 	  if($_GET['consumed1'] > 5) {
-		  $drink1 = mysql_real_escape_string($_GET['consumed1']);
+		  $drink1 = mysqli_real_escape_string($GLOBALS["cnx"], $_GET['consumed1']);
 		  $insertDrinkQuery = "INSERT INTO  `dasbot`.`drinks` (id,timestamp, userid, volume, kegid)
 					VALUES (NULL ,'$curTime', '$userID',  '$drink1', 1)";      
-		  mysql_query($insertDrinkQuery);
+		  mysqli_query($GLOBALS["cnx"], $insertDrinkQuery);
 	  }
 	  
 	  if($_GET['consumed2'] > 5) {
-		  $drink2 = mysql_real_escape_string($_GET['consumed2']);
+		  $drink2 = mysqli_real_escape_string($GLOBALS["cnx"], $_GET['consumed2']);
 		  $insertDrinkQuery = "INSERT INTO  `dasbot`.`drinks` (id,timestamp, userid, volume, kegid)
 					VALUES (NULL ,'$curTime', '$userID',  '$drink2', 2)";     
-		  mysql_query($insertDrinkQuery);
+		  mysqli_query($GLOBALS["cnx"], $insertDrinkQuery);
 	  }
 	  
 	  if($_GET['consumed3'] > 5) {
-		  $drink3 = mysql_real_escape_string($_GET['consumed3']);
+		  $drink3 = mysqli_real_escape_string($GLOBALS["cnx"], $_GET['consumed3']);
 		  $insertDrinkQuery = "INSERT INTO  `dasbot`.`drinks` (id,timestamp, userid, volume, kegid)
 					VALUES (NULL ,'$curTime', '$userID',  '$drink3', 3)";       
-		  mysql_query($insertDrinkQuery);
+		  mysqli_query($GLOBALS["cnx"], $insertDrinkQuery);
 	  }     
 	  
 	  //award badges via function
@@ -103,8 +103,8 @@ if(mysql_num_rows($userResult) == 1) {
       //get current leaders
       $leaderQuery = "SELECT users.username, sum(drinks.volume) as total FROM drinks, users WHERE users.id= drinks.userid GROUP BY userid ORDER BY total DESC LIMIT 3";
       
-      $leadersResult = mysql_query($leaderQuery)
-        or die(mysql_error()); 
+      $leadersResult = mysqli_query($GLOBALS["cnx"], $leaderQuery)
+        or die(mysqli_error($GLOBALS["cnx"]));
       
       //output message
       $curDrinkLiters = round(($drink1 + $drink2 + $drink3)/$refTicksPerLiter, 1);
@@ -139,9 +139,9 @@ if(mysql_num_rows($userResult) == 1) {
 else {
   //echo "User not found";
   
-  mysql_query("INSERT INTO users (rfid) 
+  mysqli_query($GLOBALS["cnx"], "INSERT INTO users (rfid) 
 	VALUES ('$rfid')");
-  $userID = mysql_insert_id();
+  $userID = ((is_null($___mysqli_res = mysqli_insert_id($GLOBALS["cnx"]))) ? false : $___mysqli_res);
   
   echo "Hello! Das Bot v2.0 welcomes youID $userID!\n\n You must register at http://is.gd/kickthekeg before I can give you more beer.";
 }

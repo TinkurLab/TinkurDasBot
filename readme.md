@@ -42,4 +42,4 @@ See /Code DB/
 5. Update /Code PHP/db.php.inc with your DB connect string
 6. Hook up the kegs and have fun
 
-`mysql_connect('www.mydatabaseserver.com', 'DBUserName', 'DBUserPassword');`
+`mysqli_connect('www.mydatabaseserver.com', 'DBUserName', 'DBUserPassword');`

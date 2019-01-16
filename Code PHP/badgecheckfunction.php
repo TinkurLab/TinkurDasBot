@@ -1,16 +1,16 @@
 <?php
 
-//ensure "require('db.php.inc');" is included in the main file from which this is included
+//ensure "require('db.inc.php');" is included in the main file from which this is included
 
 //usage "awardbadges(1);" 
 
 function awardbadges($userid)
 {
 
-$usernamelookupResult = mysql_query("SELECT username FROM dasbot.users WHERE id = $userid")
-	or die(mysql_error()); 
+$usernamelookupResult = mysqli_query($GLOBALS["cnx"], "SELECT username FROM dasbot.users WHERE id = $userid")
+	or die(mysqli_error($GLOBALS["cnx"]));
 
-while($usernamelookupRows = mysql_fetch_array($usernamelookupResult)){
+while($usernamelookupRows = mysqli_fetch_array($usernamelookupResult)){
 	$username = $usernamelookupRows['username'];	
 }
 	
@@ -22,17 +22,17 @@ if ($username == "Pitcher")
 } else {
 	
 	//get available badges 
-	$availablebadgesResult = mysql_query("SELECT bb.badgeid, bb.badgetitle, bb.badgeactive, bb.badgerules, bb.badgeqty, ba.badgeawardedcount
+	$availablebadgesResult = mysqli_query($GLOBALS["cnx"], "SELECT bb.badgeid, bb.badgetitle, bb.badgeactive, bb.badgerules, bb.badgeqty, ba.badgeawardedcount
 	FROM (dasbot.badges bb LEFT JOIN (SELECT badgeid, count(*) AS badgeawardedcount FROM dasbot.badgesawarded GROUP BY badgeid) ba 
 	ON bb.badgeid = ba.badgeid) LEFT JOIN (SELECT badgeid FROM dasbot.badgesawarded WHERE userid = $userid) bc ON bb.badgeid = bc.badgeid
 	WHERE (bb.badgeqty = 0 OR bb.badgeqty > ba.badgeawardedcount OR ba.badgeawardedcount IS NULL) AND bc.badgeid IS NULL AND bb.badgeactive = 1")
-	or die(mysql_error()); 
+	or die(mysqli_error($GLOBALS["cnx"]));
 	
 	//establish counter for array of awarded badges
 	$b = 0;
 	
 	//loop through available badges
-	while($availablebadgesRows = mysql_fetch_array($availablebadgesResult)){
+	while($availablebadgesRows = mysqli_fetch_array($availablebadgesResult)){
 	
 	  $availablebadgesID = $availablebadgesRows['badgeid'];
 	  $availablebadgesTitle = $availablebadgesRows['badgetitle'];
@@ -48,11 +48,11 @@ if ($username == "Pitcher")
 	  //echo "<br>";
 	  
 		//check if badge should be awarded
-		$awardbadgeResult = mysql_query("$availablebadgesRules")
-		or die(mysql_error()); 
-		echo mysql_error();
+		$awardbadgeResult = mysqli_query($GLOBALS["cnx"], "$availablebadgesRules")
+		or die(mysqli_error($GLOBALS["cnx"]));
+		echo mysqli_error($GLOBALS["cnx"]);
 		
-		while($awardbadgeRows = mysql_fetch_array($awardbadgeResult)){
+		while($awardbadgeRows = mysqli_fetch_array($awardbadgeResult)){
 		
 		  $awardbadgeBool = $awardbadgeRows['awardbadge'];
 		  
@@ -64,7 +64,7 @@ if ($username == "Pitcher")
 		  //award badge if qualifies
 		  if($awardbadgeBool == 1){
 			  $awardBadge = "INSERT INTO dasbot.badgesawarded (userid, badgeid) VALUES ($userid, $availablebadgesID)";      
-			  mysql_query($awardBadge);
+			  mysqli_query($GLOBALS["cnx"], $awardBadge);
 			  
 			  //store awarded badges in array
 			  $awardedBadges[$b] = $availablebadgesID;
@@ -83,10 +83,10 @@ if ($username == "Pitcher")
 	  {
 	  	//echo "Badge awarded: " . $awardedBadges[$i] . " "; 
 	    
-	  	$badgelookupResult = mysql_query("SELECT badgetitle, badgedescription FROM dasbot.badges WHERE badgeid = $awardedBadges[$i]")
-	  	or die(mysql_error()); 
+	  	$badgelookupResult = mysqli_query($GLOBALS["cnx"], "SELECT badgetitle, badgedescription FROM dasbot.badges WHERE badgeid = $awardedBadges[$i]")
+	  	or die(mysqli_error($GLOBALS["cnx"]));
 
-		while($badgelookupRows = mysql_fetch_array($badgelookupResult)){
+		while($badgelookupRows = mysqli_fetch_array($badgelookupResult)){
 			$badgetitle = $badgelookupRows['badgetitle'];	
 			$badgedescription = $badgelookupRows['badgedescription'];
 			
