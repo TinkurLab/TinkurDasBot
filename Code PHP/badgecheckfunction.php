@@ -1,6 +1,6 @@
 <?php
 
-//ensure "require('db.php.inc');" is included in the main file from which this is included
+//ensure "require('db.inc.php');" is included in the main file from which this is included
 
 //usage "awardbadges(1);" 
 

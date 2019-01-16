@@ -1,7 +1,7 @@
 
 <?php
 
-require('db.php.inc');
+require('db.inc.php');
 
 //check for rfid in url. If present, set variable
 if(isset($_GET['rfid'])) {

@@ -1,7 +1,7 @@
 
 <?php
 
-require('db.php.inc');
+require('db.inc.php');
 
 $userid = 27;
 

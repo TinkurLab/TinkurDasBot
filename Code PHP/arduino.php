@@ -3,7 +3,7 @@
 //Test URL
 //http://www.tinkurlab.com/projects/dasbot/arduino.php?rfid=12345678&consumed1=750&consumed2=0&consumed3=0
 
-require('db.php.inc');
+require('db.inc.php');
 
 include 'badgecheckfunction.php';
 
